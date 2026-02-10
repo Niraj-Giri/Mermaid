@@ -1,91 +1,152 @@
-# Entity relationship diagrams cheatsheet
-
-[Official documentation](https://mermaid.js.org/syntax/entityRelationshipDiagram.html).
-
-## Example
-
-```mermaid
 erDiagram
-    User {
-        Int id PK
-        String username
-        Int serverId FK
-    }
 
-    Server {
-        Int id PK
-        String serverName
-    }
+  USERS {
+    bigint id PK
+    varchar full_name
+    varchar email
+    varchar phone
+    varchar password
+    boolean is_active
+    boolean is_verified
+    timestamp created_at
+    timestamp updated_at
+    bigint role_id FK
+  }
 
-    Server ||--o{ User : has
-```
+  ROLES {
+    bigint id PK
+    varchar name
+  }
 
-```
-erDiagram
-    User {
-        Int id PK
-        String username
-        Int serverId FK
-    }
+  AUTH_CREDENTIALS {
+    bigint user_id PK, FK
+    varchar password_hash
+    timestamp last_login
+    int failed_attempts
+  }
 
-    Server {
-        Int id PK
-        String serverName
-    }
+  CREW_DETAILS {
+    bigint id PK
+    bigint user_id FK
+    varchar department
+    varchar specialization
+    bigint availability_status_id FK
+    timestamp created_at
+  }
 
-    Server ||--o{ User : has
-```
+  AVAILABILITY_STATUSES {
+    bigint id PK
+    varchar name
+  }
 
-## Defining entities
+  LOCATIONS {
+    bigint id PK
+    double latitude
+    double longitude
+    varchar address_line
+    varchar area
+    varchar landmark
+    varchar city
+    varchar state
+    varchar pincode
+    varchar geohash
+    timestamp created_at
+  }
 
-```mermaid
-erDiagram
-    User {
-        String Username PK "The user's name, a primary key"
-        Date dateCreated "When the user was created"
-        Int Server FK "The user's server, a foreign key"
-    }
-```
+  COMPLAINTS {
+    bigint id PK
+    varchar title
+    varchar description
+    varchar ml_detected_category
+    boolean is_ml_verified
+    boolean is_deleted
+    int vote_count
+    timestamp created_at
+    timestamp updated_at
+    timestamp resolved_at
+    timestamp sla_deadline
+    bigint citizen_id FK
+    bigint category_id FK
+    bigint status_id FK
+    bigint location_id FK
+    bigint get_assigned_crew_id FK
+  }
 
-```
-erDiagram
-    User {
-        String Username PK "The user's name, a primary key"
-        Date dateCreated "When the user was created"
-        Int Server FK "The user's server, a foreign key"
-    }
-```
+  COMPLAINT_CATEGORIES {
+    bigint id PK
+    varchar name
+    varchar description
+    boolean is_active
+  }
 
-## Defining relationships
+  COMPLAINT_STATUSES {
+    bigint id PK
+    varchar name
+  }
 
-### Numerical relationship
+  COMPLAINT_STATUS_HISTORY {
+    bigint id PK
+    bigint complaint_id FK
+    bigint status_id FK
+    bigint changed_by FK
+    varchar remarks
+    timestamp changed_at
+  }
 
-```mermaid
-erDiagram
-    User1 |o--o| Item1 : "Zero or one - Zero or one"
-    User2 }o--o{ Item2 : "Zero or more - Zero or more"
-    User3 ||--|| Item3 : "Exactly one - Exactly one"
-    User4 }|--|{ Item4 : "One or more - One or more"
-```
+  COMPLAINT_ASSIGNMENTS {
+    bigint id PK
+    bigint complaint_id FK
+    bigint crew_id FK
+    bigint assigned_by FK
+    varchar assignment_status
+    timestamp assigned_at
+    timestamp completed_at
+  }
 
-```
-erDiagram
-    User1 |o--o| Item1 : "Zero or one - Zero or one"
-    User2 }o--o{ Item2 : "Zero or more - Zero or more"
-    User3 ||--|| Item3 : "Exactly one - Exactly one"
-    User4 }|--|{ Item4 : "One or more - One or more"
-```
+  COMPLAINT_IMAGES {
+    bigint id PK
+    bigint complaint_id FK
+    varchar image_path
+    varchar image_type
+    bigint uploaded_by
+    timestamp uploaded_at
+  }
 
-### Identifying relationship
+  AUDIT_LOGS {
+    bigint id PK
+    bigint user_id FK
+    varchar action
+    varchar entity_type
+    bigint entity_id
+    timestamp created_at
+  }
 
-```mermaid
-erDiagram
-    AppleTree ||..|| Apple : "Reliant entity"
-    Flower ||--|| Leaf : "Independent entities"
-```
+  %% ===== RELATIONSHIPS =====
 
-```
-erDiagram
-    AppleTree ||..|| Apple : "Reliant entity"
-    Flower ||--|| Leaf : "Independent entities"
-```
+  ROLES ||--o{ USERS : "assigned to"
+
+  USERS ||--|| AUTH_CREDENTIALS : "has"
+
+  USERS ||--|| CREW_DETAILS : "is"
+
+  AVAILABILITY_STATUSES ||--o{ CREW_DETAILS : "defines"
+
+  USERS ||--o{ COMPLAINTS : "raises"
+  USERS ||--o{ COMPLAINTS : "assigned crew"
+
+  COMPLAINT_CATEGORIES ||--o{ COMPLAINTS : "categorizes"
+  COMPLAINT_STATUSES ||--o{ COMPLAINTS : "current status"
+  LOCATIONS ||--o{ COMPLAINTS : "located at"
+
+  COMPLAINTS ||--o{ COMPLAINT_STATUS_HISTORY : "status history"
+  COMPLAINT_STATUSES ||--o{ COMPLAINT_STATUS_HISTORY : "status"
+  USERS ||--o{ COMPLAINT_STATUS_HISTORY : "changed by"
+
+  COMPLAINTS ||--o{ COMPLAINT_ASSIGNMENTS : "assigned"
+  USERS ||--o{ COMPLAINT_ASSIGNMENTS : "crew"
+  USERS ||--o{ COMPLAINT_ASSIGNMENTS : "assigned by"
+
+  COMPLAINTS ||--o{ COMPLAINT_IMAGES : "has"
+  USERS ||--o{ COMPLAINT_IMAGES : "uploads"
+
+  USERS ||--o{ AUDIT_LOGS : "creates"
